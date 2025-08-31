@@ -98,7 +98,9 @@ flowchart LR
   F --> G[Exports]
   G --> H[Power BI]
   H --> I[Tabular Editor / Measures]
+  ```
 
+---
 
 ## 7. Power BI Semantic Model
 - **Star schema**:  
