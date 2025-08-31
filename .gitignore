@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# dbt + DuckDB
+*.duckdb
+target/
+dbt_packages/
+
+# Power BI
+*.pbix
+*.pbit
+
+# Misc
+*.log
+.DS_Store
