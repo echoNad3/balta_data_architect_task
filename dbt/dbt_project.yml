@@ -1,20 +1,11 @@
-name: "balta"
-version: "1.0"
-config-version: 2
-profile: "balta"
-
+name: balta_dbt
+version: 1.0.0
+profile: balta_duckdb
 model-paths: ["models"]
-seed-paths: ["seeds/bronze"]
+seed-paths: ["seeds"]
 macro-paths: ["macros"]
-
-models:
-  balta:
-    +materialized: table
-    silver:
-      +materialized: table
-    gold:
-      +materialized: table
-
-seeds:
-  balta:
-    +quote_columns: false
+target-path: "target"
+clean-targets: ["target"]
+config-version: 2
+vars:
+  as_of_date: "{{ run_started_at.strftime('%Y-%m-%d') }}"

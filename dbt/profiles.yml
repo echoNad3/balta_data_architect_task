@@ -1,7 +1,8 @@
-balta:
+balta_duckdb:
   target: dev
   outputs:
     dev:
       type: duckdb
-      path: "{{ env_var('DBT_DUCKDB_PATH', 'balta_duckdb.db') }}"
+      path: ./warehouse/balta.duckdb   # relative path, lives in dbt/warehouse/
       threads: 4
+      schema: main

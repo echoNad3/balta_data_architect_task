@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: stg_policies
+    columns:
+      - name: idd_pol_policy
+        tests: [not_null, unique]
+      - name: idd_cus_customer
+        tests: [not_null]
+
+  - name: stg_claims
+    columns:
+      - name: claim_id
+        tests: [not_null, unique]
+      - name: idd_pol_policy
+        tests:
+          - relationships:
+              to: ref('stg_policies')
+              field: idd_pol_policy
+
+  - name: dim_customers
+    columns:
+      - name: idd_cus_customer
+        tests: [not_null, unique]
+
+  - name: dim_products
+    columns:
+      - name: idd_prd_product
+        tests: [not_null, unique]
