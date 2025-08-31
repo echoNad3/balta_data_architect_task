@@ -98,3 +98,71 @@ flowchart LR
   F --> G[Exports]
   G --> H[Power BI]
   H --> I[Tabular Editor / Measures]
+
+
+## 7. Power BI Semantic Model
+- **Star schema**:  
+  - `dim_customers` (1 → *) → `fact_claims` and `fct_policy_premium`  
+  - `dim_products` (1 → *) → `fact_claims` and `fct_policy_premium`  
+- Relationships are **single-direction filters** from dimensions to facts, all active.  
+- **Measures (DAX):**
+
+    ```DAX
+    Total Claims := SUM ( fact_claims[amt_claim] )
+
+    Total Written Premium := SUM ( fct_policy_premium[amt_written_premium] )
+
+    Total Earned Premium := SUM ( fct_policy_premium[amt_earned_premium] )
+
+    Claim Ratio := DIVIDE ( [Total Claims], [Total Earned Premium] )
+    ```
+
+- **Claim Ratio** is formatted as Percentage.  
+- **Mock report**:  
+  - 4 KPI cards (Total Claims, Total Written Premium, Total Earned Premium, Claim Ratio).  
+  - Bar chart of Claim Ratio by Product Code.  
+  - Optional slicers (e.g. Segment, Age Group).
+
+---
+
+## 8. Naming Standards
+- **Column conventions:**  
+  - IDs → `idd_*` (e.g. `idd_cus_customer`, `idd_pol_policy`)  
+  - Dates → `d_*` (date) / `dt_*` (timestamp)  
+  - Amounts → `amt_*` (monetary)  
+  - Flags → `is_*`  
+- **Schemas (per enterprise standard):**  
+  - `dwh` – core BI (dims/facts)  
+  - `dwh_conf` – configuration/mapping tables  
+  - `dwh_hist` – history tracking  
+  - `staging_%`, `staging_%__hist` – raw staging + history  
+  - `key_%` – key mapping helpers  
+*(Locally in DuckDB I used one schema, but the names above align with enterprise guidance.)*
+
+---
+
+## 9. Deliverables
+- dbt project with Silver/Gold + marts.  
+- Business logic: Earned Premium, Claim Ratio.  
+- Python pipelines: data validation + offers uniqueness.  
+- Data profiling & weaknesses documented.  
+- CI/CD pipeline sketch (Mermaid diagram).  
+- Power BI semantic model + mock dashboard.  
+- Applied naming & schema standards.
+
+---
+
+## 10. Where GenAI helped
+I used ChatGPT for:  
+- Drafting dbt SQL and Python scaffolding.  
+- Brainstorming new dimensions & counting strategy.  
+- Drafting this documentation.  
+All outputs were validated and executed locally.
+
+---
+
+## 11. Possible Next Steps
+- Add calendar/date dimension for YTD, MoM, rolling averages.  
+- Deploy pipeline in Azure (ADF/Databricks/dbt Cloud + CI/CD).  
+- More robust DQ checks (normalize city, gender, segment values).  
+- Move offers uniqueness calculation to SQL with window functions for scalability.
