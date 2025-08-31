@@ -1,0 +1,7 @@
+balta:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', 'balta_duckdb.db') }}"
+      threads: 4

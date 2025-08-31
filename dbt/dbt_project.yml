@@ -1,19 +1,20 @@
-name: "balta_task"
-version: "1.0.0"
-profile: "balta_task"
+name: "balta"
+version: "1.0"
+config-version: 2
+profile: "balta"
+
 model-paths: ["models"]
-seed-paths: ["data"]
+seed-paths: ["seeds/bronze"]
+macro-paths: ["macros"]
 
 models:
-  balta_task:
+  balta:
     +materialized: table
-    bronze:
-      +schema: staging_balta
     silver:
-      +schema: dwh
+      +materialized: table
     gold:
-      +schema: dwh
+      +materialized: table
 
 seeds:
-  balta_task:
-    +schema: staging_balta
+  balta:
+    +quote_columns: false
