@@ -1,10 +1,10 @@
-# Answers by Question (Uzdevums)
+# Answers
 
-This document mirrors the structure of the assignment PDF so the assessor can quickly map each answer to the corresponding requirement.  
+This README mirrors the structure of the assignment tasks in order.
 
 ---
 
-## Repozitorijs (Repository)
+## Repository
 
 **1.** Create a Git repo (Bitbucket/GitHub/other).  
 ✅ Done. The project lives in a GitHub repo with a clean commit history. The local working folder is:  
@@ -19,7 +19,7 @@ This document mirrors the structure of the assignment PDF so the assessor can qu
 
 ---
 
-## GenAI (allowed if documented)
+## GenAI
 
 **1.** LLM usage must be documented.  
 ✅ Documented in README: used ChatGPT to scaffold dbt/Python, brainstorm dimensional design and counting strategy, and draft documentation; all code was validated locally.
@@ -70,6 +70,7 @@ Example:
 | P1        | AUTO    | 2        | NULL  | 100                 |
 | P2        | HOME    | NULL     | 3     | 200                 |
 | P3        | TRAVEL  | NULL     | NULL  | 50                  |
+
 Answer: total of 6 (2 + 3 + 1) instead of just 3 policies.
 
 ---
@@ -110,7 +111,8 @@ Weaknesses observed:
 
 ## 5. CI/CD (Azure pipeline sketch)
 
-✅ ```mermaid
+✅ 
+```mermaid
 flowchart LR
   A[CSV files] --> B[dbt seed]
   B --> C[(Silver: stg_*)]
