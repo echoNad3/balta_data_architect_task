@@ -114,12 +114,12 @@ Weaknesses observed:
 ✅ 
 ```mermaid
 flowchart LR
-  GIT[GitHub / Azure Repos] --> CI[CI Pipeline (build)]
-  CI --> DEVDB[(Dev Database - dbt run + test)]
+  GIT[GitHub / Azure Repos] --> CI[CI_Pipeline_Build]
+  CI --> DEVDB[(Dev Database: dbt run + test)]
   CI --> QA[Test Results]
 
-  GIT --> CD[CD Pipeline (release)]
-  CD --> PRODDB[(Prod Database - dbt models: silver, gold, marts)]
+  GIT --> CD[CD_Pipeline_Release]
+  CD --> PRODDB[(Prod Database: dbt models: silver, gold, marts)]
   PRODDB --> PBI[Power BI Dataset]
   PBI --> USERS[End Users / Dashboards]
   ```
