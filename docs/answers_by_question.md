@@ -31,63 +31,67 @@ This document mirrors the structure of the assignment PDF so the assessor can qu
 ### 1. Medallion with dbt (locally)
 
 **1.a** Build **fact_claims** (claims + policies join).  
-✅ Implemented as `dbt/models/gold/fact_claims.sql`. Grain = **claim**.  
+✅ Implemented as `dbt/models/gold/fact_claims.sql`. level = **claim**.  
 
 **1.b** Build **dim_customers**.  
-✅ Implemented as `dbt/models/gold/dim_customers.sql`. Adds:  
-- `age_years`  
-- `age_group` buckets (00–17, 18–24, …, 65+)
+✅ Implemented as `dbt/models/gold/dim_customers.sql`.
 
 **1.c** What **new dimensions** can be derived from **customers**?  
-✅ Implemented: `dim_customers` with `age_group`.  
-Other candidates: `dim_age_group`, `dim_geography`, `dim_customer_segment`.
+✅ `age_group`, `age_years`.
 
 **1.d** Build **dim_products** from **policies**.  
 ✅ Implemented as `dbt/models/gold/dim_products.sql`.  
 
 **1.e** What **new dimensions** can be derived from **policies**?  
-✅ Candidates: `dim_policy_status`, `dim_sales_channel`, `dim_currency`, `dim_policy_term`.
+✅ `total_policy_term_days`, `days_till_policy_expiry`, `elapsed_policy_days`.
 
 ---
 
 ### 2. Business logic
 
 **2.a** Compute **earned_premium** for each policy.  
-✅ Implemented in `fct_policy_premium.sql`:  
-`earned_premium = written_premium * elapsed_days / total_days`  
-(Bounded, uses `vars.as_of_date`.)
+✅ Implemented in `dbt/models/gold/fct_policy_premium.sql`:  
+`earned_premium = written_premium * elapsed_days / total_days` 
 
 **2.b** Compute **Claim Ratio** = Σ(claim_amount) / Σ(earned_premium).  
-✅ Implemented via dbt mart + DAX measure in Power BI.  
+✅ Implemented as `dbt/models/gold/mart_claim_ratio_by_product.sql` and DAX measure in Power BI.  
 
-**2.c Optimized SQL for average premium and average claim by customer age groups — implemented.**  
-✅ Implemented in mart: pre-join facts to `dim_customers` age buckets, single aggregation step.  
-(SQL example provided in Full_Report.md.)
+**2.c Optimized SQL for average premium and average claim by customer age groups**  
+✅ Implemented as `dbt/models/gold/mart_avg_by_age_group.sql`.
+Age groups taken from `dbt/models/gold/dim_customers.sql`.
 
 
 **2.d** Counting strategy when logic differs by product.  
-✅ Keep fact grain stable. Introduce config table mapping product → rule. dbt derives count cols (`cnt_policy`, `cnt_vehicle`, …). PBI measures select rule dynamically.
+✅ Different products use different counting rules, for example, AUTO counts vehicles, HOME counts risk objects, TRAVEL counts policies. Adding them together directly makes no sense. The best solution is to keep the fact table consistent (for example, one row per policy) and use a small mapping that tells the system which counting rule applies for each product. This way reports show the right counts for every product type.
+
+Example:
+| policy_id | product | vehicles | risks | amt_written_premium |
+|-----------|---------|----------|-------|---------------------|
+| P1        | AUTO    | 2        | NULL  | 100                 |
+| P2        | HOME    | NULL     | 3     | 200                 |
+| P3        | TRAVEL  | NULL     | NULL  | 50                  |
+Answer: total of 6 (2 + 3 + 1) instead of just 3 policies.
 
 ---
 
 ## 3. Python integrācija
 
 **3.a** Script for **data validation**.  
-✅ `pipelines/validate_data.py` → `docs/validation_report.md`. Checks:
+✅ `pipelines/validate_data.py` → `docs/validation_report.md`. 
+Checks:
 - Duplicate policies  
 - End < Start dates  
-- Orphan claims  
+- Claims without a matching policy from policy table
 - Missing/implausible birth dates  
-- Optional: claims outside coverage  
+- Claims outside coverage window
 
 **3.b** Script for **uniqueness in offers**.  
 ✅ `pipelines/offers_uniqueness.py` → flags `is_unique_day/week/month`. Output: `exports/offers_with_uniqueness.csv`.
-➡️ The `UniqueDay` / `UniqueWeek` / `UniqueMonth` results are exposed as attributes on offers (functioning as dimensions).  
-If preferred, they can be materialized as a small `dim_offer_uniqueness` (offer_id + three flags) and joined to facts.
-
+➡️ Compares each offer to the next one in time, flagging it as unique if no later offer exists in the same window. 
+This prevents double-counting and gives accurate daily, weekly, and monthly unique offer counts.
 
 **3.c** Is Python the most efficient way? Alternatives?  
-✅ Pandas is fine for moderate data. For scale, use SQL window functions (`LEAD()`, date diffs) inside dbt/warehouse.
+✅ Python is fine for moderate data. For scale, use SQL window functions (`LEAD()`, date diffs) inside dbt/warehouse.
 
 ---
 
@@ -106,9 +110,17 @@ Weaknesses observed:
 
 ## 5. CI/CD (Azure pipeline sketch)
 
-✅ Mermaid diagram in `docs/Full_Report.md`. Flow:  
-CSV ingest → dbt seed → Silver → Gold (dims/facts) → marts → exports → Power BI.  
-Real-world mapping: Files → ADF/Databricks → Lakehouse → dbt CI → PBI deploy.
+✅ ```mermaid
+flowchart LR
+  A[CSV files] --> B[dbt seed]
+  B --> C[(Silver: stg_*)]
+  C --> D[(Gold: dims)]
+  C --> E[(Gold: facts)]
+  D & E --> F[(Marts)]
+  F --> G[Exports]
+  G --> H[Power BI]
+  H --> I[Tabular Editor / Measures]
+  ```
 
 ---
 
