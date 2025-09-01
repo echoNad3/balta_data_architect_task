@@ -114,14 +114,28 @@ Weaknesses observed:
 ✅ 
 ```mermaid
 flowchart LR
-  A[CSV files] --> B[dbt seed]
-  B --> C[(Silver: stg_*)]
-  C --> D[(Gold: dims)]
-  C --> E[(Gold: facts)]
-  D & E --> F[(Marts)]
-  F --> G[Exports]
-  G --> H[Power BI]
-  H --> I[Tabular Editor / Measures]
+  subgraph Repo [Git repo (main/dev)]
+    C1[dbt project] --> C2[Python checks]
+    C1 --> C3[Power BI model (.pbix/.pbit) + TE scripts]
+  end
+
+  T1[PR/Commit] -->|CI trigger| B[Azure DevOps Pipeline / GitHub Actions]
+  B --> K[Azure Key Vault (secrets)]
+  B --> ADF[Azure Data Factory / Orchestration]
+  ADF --> BR[ADLS Gen2 Bronze]
+  BR -->|transform| DBX[Databricks / Synapse]
+  DBX --> SLV[(Silver - dbt stg_*)]
+  SLV --> GLD_D[(Gold Dims)]
+  SLV --> GLD_F[(Gold Facts)]
+  GLD_D & GLD_F --> M[(Marts/Models)]
+
+  B -->|dbt run + test| DBT[(dbt jobs in dev/test/prod)]
+  DBT --> QA[dbt tests + data quality]
+
+  M --> PBI[Power BI Dataset]
+  PBI --> DEP[Power BI Deployment Pipelines (Dev → Test → Prod)]
+
+  B --> NOTIFY[Teams/Email alerts]
   ```
 
 ---
