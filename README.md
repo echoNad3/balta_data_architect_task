@@ -75,7 +75,7 @@ Answer: total of 6 (2 + 3 + 1) instead of just 3 policies.
 
 ---
 
-## 3. Python integrācija
+## 3. Python integration
 
 **3.a** Script for **data validation**.  
 ✅ `pipelines/validate_data.py` → `docs/validation_report.md`. 
@@ -149,56 +149,3 @@ Claim Ratio := DIVIDE ( [Total Claims], [Total Earned Premium] )
 - **4 KPI cards**: *Total Claims*, *Total Written Premium*, *Total Earned Premium*, *Claim Ratio (%)*.
 - **Bar/Column chart**: *Claim Ratio by Product* (axis = `product_code`).
 - **Optional slicers**: *Customer Segment* and/or *Age Group* to demonstrate slicing.
-
----
-
-## Naming Standards
-
-✅ Adopted the provided standard across the project:
-
-- **IDs:** `idd_*` (e.g., `idd_cus_customer`, `idd_pol_policy`, `idd_prd_product`)
-- **Dates / Times:** `d_*` (date), `dt_*` (timestamp), `t_*` (time)
-- **Amounts / Quantities / Counts:** `amt_*`, `qty_*`, `cnt_*`
-- **Flags:** `is_*`
-- **Attributes:** suffixes like `_code`, `_name`, `_descr` where relevant
-- **Schemas (enterprise guidance):**  
-  - `dwh` – core BI (dimensions & facts)  
-  - `dwh_conf` – configuration / mapping tables  
-  - `dwh_hist` – history tracking  
-  - `staging_%`, `staging_%__hist` – raw staging + history per source  
-  - `key_%` – key mapping helpers  
-
-*(For this local DuckDB demo, a single physical schema is used, but column naming follows the standard.)*
-
----
-
-## Runbook
-
-**Setup**
-- Create & activate Python venv (3.11).  
-- Install dependencies: `dbt-duckdb`, `pandas`, `duckdb`, `pyarrow`, `tabulate`.
-
-**dbt (from `./dbt`)**
-- `dbt debug`  
-- `dbt seed`  
-- `dbt run` (builds Silver → Gold → marts)  
-- `dbt test` (schema + custom tests)
-
-**Python checks (from repo root)**
-- `python pipelines/validate_data.py` → `docs/validation_report.md`  
-- `python pipelines/offers_uniqueness.py` → `exports/offers_with_uniqueness.csv`  
-- `python pipelines/export_for_pbi.py` → exports 5 CSVs for Power BI
-
-**Power BI**
-- Import the 5 CSVs from `/exports`.  
-- Ensure **1→*** relationships from `dim_customers` & `dim_products` to both facts.  
-- Add measures: *Total Claims*, *Total Written Premium*, *Total Earned Premium*, *Claim Ratio (%)*.  
-- Build the 4 KPI cards + Claim Ratio by product chart; add optional slicers.
-
----
-
-## Notes
-
-- **Policy versions:** `stg_policies` keeps the **latest** `policy_version` per `policy_id` to ensure uniqueness and simplify joins (resolved a failing uniqueness test).  
-- **Earned Premium:** computed via elapsed-days proration; uses `vars.as_of_date` (defaults to run date) for deterministic rebuilds.  
-- **Claims in coverage window:** treated as **optional**; in real insurance data late-reported claims are common and the dataset lacks `loss_date`, so enforcing a strict window can yield false positives. Documented the decision and skipped enforcing it in CI.
