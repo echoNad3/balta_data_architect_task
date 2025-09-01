@@ -60,8 +60,10 @@ Other candidates: `dim_age_group`, `dim_geography`, `dim_customer_segment`.
 **2.b** Compute **Claim Ratio** = Σ(claim_amount) / Σ(earned_premium).  
 ✅ Implemented via dbt mart + DAX measure in Power BI.  
 
-**2.c** Optimized SQL for **avg premium & claim by age groups**.  
+**2.c Optimized SQL for average premium and average claim by customer age groups — implemented.**  
 ✅ Implemented in mart: pre-join facts to `dim_customers` age buckets, single aggregation step.  
+(SQL example provided in Full_Report.md.)
+
 
 **2.d** Counting strategy when logic differs by product.  
 ✅ Keep fact grain stable. Introduce config table mapping product → rule. dbt derives count cols (`cnt_policy`, `cnt_vehicle`, …). PBI measures select rule dynamically.
@@ -80,6 +82,9 @@ Other candidates: `dim_age_group`, `dim_geography`, `dim_customer_segment`.
 
 **3.b** Script for **uniqueness in offers**.  
 ✅ `pipelines/offers_uniqueness.py` → flags `is_unique_day/week/month`. Output: `exports/offers_with_uniqueness.csv`.
+➡️ The `UniqueDay` / `UniqueWeek` / `UniqueMonth` results are exposed as attributes on offers (functioning as dimensions).  
+If preferred, they can be materialized as a small `dim_offer_uniqueness` (offer_id + three flags) and joined to facts.
+
 
 **3.c** Is Python the most efficient way? Alternatives?  
 ✅ Pandas is fine for moderate data. For scale, use SQL window functions (`LEAD()`, date diffs) inside dbt/warehouse.
@@ -113,13 +118,15 @@ Real-world mapping: Files → ADF/Databricks → Lakehouse → dbt CI → PBI de
 ✅ Star schema:  
 - `dim_customers (1) → fact_claims (*)` & `fct_policy_premium (*)`  
 - `dim_products (1) → fact_claims (*)` & `fct_policy_premium (*)`  
+ℹ️ Claims are linked to **policy-derived dimensions** via `dim_products` and attributes in `fct_policy_premium`.  
+Additional policy dims (e.g. `dim_policy_status`, `dim_sales_channel`) are outlined and can be materialized if required.
 
 **6.a.ii** Create measures (Claim Ratio, Total Premiums, Total Claims, Total Earned Premium).  
 ✅ Implemented:  
 ```DAX
-Total Claims := SUM ( fact_claims[amt_claim] )
-Total Written Premium := SUM ( fct_policy_premium[amt_written_premium] )
+Total Premiums (Written) := SUM ( fct_policy_premium[amt_written_premium] )
 Total Earned Premium := SUM ( fct_policy_premium[amt_earned_premium] )
+Total Claims := SUM ( fact_claims[amt_claim] )
 Claim Ratio := DIVIDE ( [Total Claims], [Total Earned Premium] )
 ```
 
