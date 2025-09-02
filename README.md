@@ -201,3 +201,6 @@ Claim Ratio (%)         = DIVIDE ( [Total Claims], [Total Earned Premium] )
 This setup shows how the semantic model supports interactive analysis:  
 For example, selecting *HOME* in `product_code` and *Jelgava* in `city` will narrow down the policies and claims shown across the visuals.
 
+![Dashboard](docs/dashboard_screenshot.png)
+![Relationships](docs/dashboard_screenshot2.png)
+
