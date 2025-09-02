@@ -33,7 +33,7 @@ I also used them to:
 - Clarify dbt SQL syntax and concepts of *silver* and *gold* layers.  
 - Suggest improvements for Python scripts and help debug issues.  
 - Give feedback on how to structure relationships in Power BI tables.
-- Profread grammar and add formatting to this README.
+- Profread grammar and add better phrasing and formatting to this README.
 
 All outputs from the models were treated as drafts or suggestions — I revised, corrected, and implemented the final solution myself, 
 as LLMs are known to make mistakes and miss important details.
@@ -144,6 +144,18 @@ flowchart LR
   PRODDB --> PBI[Power BI Dataset<br/>Connected to Gold + Aggregations, refreshed via pipeline]
   PBI --> USERS[End Users / Dashboards<br/>Consume trusted production data]
   ```
+This pipeline automates how data models move from development into production.
+Everything lives in Azure Repos — the dbt project, Python checks, and Power BI definitions.
+
+When I create a branch or pull request, the CI pipeline builds the models in a temporary dev schema and runs dbt tests plus Python data-quality checks. 
+That ensures the code works and the data is clean before anyone merges it.
+
+If the tests pass and we merge to main, the CD pipeline runs, deploying the models to the production database. 
+There, we follow a layered approach: Silver tables are cleaned staging, 
+Gold are conformed facts and dimensions, and Aggregations are pre-summed for reporting.
+
+Finally, the pipeline triggers a Power BI dataset refresh so dashboards always show trusted production data.
+End users only ever see the tested, validated version — which makes releases safe, repeatable, and automated.
 
 ---
 
