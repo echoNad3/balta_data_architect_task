@@ -131,7 +131,7 @@ Weaknesses observed:
 ✅ 
 ```mermaid
 flowchart LR
-  GIT[GitHub / Azure Repos<br/>Stores dbt project, Python scripts, and Power BI model definitions] 
+  GIT[Azure Repos<br/>Stores dbt project, Python scripts, and Power BI model definitions] 
     --> CI[CI_Pipeline_Build<br/>Triggered on PR/commit → runs dbt seed/run/test in Dev]
 
   CI --> DEVDB[(Dev Database<br/>Temporary schema for staging + validating models)]
