@@ -22,11 +22,25 @@ This README mirrors the structure of the assignment tasks in order.
 ## GenAI
 
 **1.** LLM usage must be documented.  
-✅ Documented in README: used ChatGPT to scaffold dbt/Python, brainstorm dimensional design and counting strategy, and draft documentation; all code was validated locally.
+✅ Documenation:  
+I used ChatGPT 5 (Thinking), Gemini 2.5 Pro, and Claude Opus 4.1 mainly as support tools to speed up my workflow. 
+At the start, I asked them for rough process overviews to get inspiration on where to begin, 
+then compared their answers and had them point out each other’s mistakes. Based on this, I created my own plan and repository layout.  
+
+I also used them to:  
+- Provide adittional clarity to a few confusing task descriptions.
+- Help me setup my environment and local dbt, e.g., dependencies, yml files, debugging. 
+- Clarify dbt SQL syntax and concepts of *silver* and *gold* layers.  
+- Suggest improvements for Python scripts and help debug issues.  
+- Give feedback on how to structure relationships in Power BI tables.
+- Profread grammar and add formatting to this README.
+
+All outputs from the models were treated as drafts or suggestions — I revised, corrected, and implemented the final solution myself, 
+as LLMs are known to make mistakes and miss important details.
 
 ---
 
-## Datu ielāde un transformācija (ETL)
+## Data extraction and transformation (ETL)
 
 ### 1. Medallion with dbt (locally)
 
@@ -62,7 +76,10 @@ Age groups taken from `dbt/models/gold/dim_customers.sql`.
 
 
 **2.d** Counting strategy when logic differs by product.  
-✅ Different products use different counting rules, for example, AUTO counts vehicles, HOME counts risk objects, TRAVEL counts policies. Adding them together directly makes no sense. The best solution is to keep the fact table consistent (for example, one row per policy) and use a small mapping that tells the system which counting rule applies for each product. This way reports show the right counts for every product type.
+✅ Different products use different counting rules, for example, AUTO counts vehicles, HOME counts risk objects, 
+TRAVEL counts policies. Adding them together directly makes no sense. The best solution is to keep the fact table consistent 
+(for example, one row per policy) and use a small mapping that tells the system which counting rule applies for each product. 
+This way reports show the right counts for every product type.
 
 Example:
 | policy_id | product | vehicles | risks | amt_written_premium |
@@ -132,24 +149,43 @@ flowchart LR
 
 ## 6. Power BI Semantic Model
 
-**6.a.i** Link claims with policy dimensions.  
-✅ Star schema:  
-- `dim_customers (1) → fact_claims (*)` & `fct_policy_premium (*)`  
-- `dim_products (1) → fact_claims (*)` & `fct_policy_premium (*)`  
-ℹ️ Claims are linked to **policy-derived dimensions** via `dim_products` and attributes in `fct_policy_premium`.  
-Additional policy dims (e.g. `dim_policy_status`, `dim_sales_channel`) are outlined and can be materialized if required.
+### 6.a.i Link claims with policy dimensions
+✅ Implemented relationships in Power BI:
+  - `fact_claims` → `dim_customers` (via `idd_cus_customer`)
+  - `fact_claims` → `dim_products` (via `idd_prd_product`)
+  - `fact_claims` → `dim_policies` (via `idd_pol_policy`)
+  - `fct_policy_premium` → `dim_customers` and `dim_products`
 
-**6.a.ii** Create measures (Claim Ratio, Total Premiums, Total Claims, Total Earned Premium).  
-✅ Implemented:  
+This setup allows filtering by customer, product, and policy when analyzing claims or premiums.  
+Example: Selecting a product in a slicer automatically narrows down related policies and claims.
+
+---
+
+### 6.a.ii Create fact measures
+✅ Measures were created in Power BI:
+
 ```DAX
-Total Premiums (Written) := SUM ( fct_policy_premium[amt_written_premium] )
-Total Earned Premium := SUM ( fct_policy_premium[amt_earned_premium] )
-Total Claims := SUM ( fact_claims[amt_claim] )
-Claim Ratio := DIVIDE ( [Total Claims], [Total Earned Premium] )
+Total Premiums (Written) = SUM ( fct_policy_premium[amt_written_premium] )
+Total Earned Premium    = SUM ( fct_policy_premium[amt_earned_premium] )
+Total Claims            = SUM ( fact_claims[amt_claim] )
+Claim Ratio (%)         = DIVIDE ( [Total Claims], [Total Earned Premium] )
 ```
 
-**6.b** Demonstrate model with mock-up.  
-✅ Power BI report includes:
-- **4 KPI cards**: *Total Claims*, *Total Written Premium*, *Total Earned Premium*, *Claim Ratio (%)*.
-- **Bar/Column chart**: *Claim Ratio by Product* (axis = `product_code`).
-- **Optional slicers**: *Customer Segment* and/or *Age Group* to demonstrate slicing.
+### 6.b Demonstrate the model with a mock-up in Power BI
+✅ Mock-up dashboard was built in Power BI to demonstrate the semantic model:
+
+- **4 KPI cards**:
+  - *Total Claims*
+  - *Total Written Premium*
+  - *Total Earned Premium*
+  - *Claim Ratio (%)*
+- **Bar chart**: Claim Ratio by `product_code`
+- **Slicers**: 
+  - `idd_pol_policy`
+  - `city`
+  - `age_group`
+  - `product_code`
+
+This setup shows how the semantic model supports interactive analysis:  
+For example, selecting *HOME* in `product_code` and *Jelgava* in `city` will narrow down the policies and claims shown across the visuals.
+
