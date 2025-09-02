@@ -14,7 +14,7 @@ This README mirrors the structure of the assignment tasks in order.
 ✅ Done. Final structure:
 - `dbt/` – dbt project (models, seeds, profiles, warehouse)  
 - `pipelines/` – Python scripts (`validate_data.py`, `offers_uniqueness.py`, `export_for_pbi.py`)  
-- `docs/` – documentation (this file, Full_Report.md, pipeline diagram), plus `docs/validation_report.md`  
+- `docs/` – data quality report, images 
 - `exports/` – CSV exports for Power BI  
 
 ---
