@@ -1,12 +1,32 @@
 version: 2
 
 models:
+  # STAGING TESTS: Check data integrity right after cleaning
+  - name: stg_customers
+    columns:
+      - name: idd_cus_customer
+        tests: [not_null, unique]
+      - name: gender # NEW: Directly checks for a common data weakness
+        tests:
+          - accepted_values:
+              values: ['M', 'F']
+      - name: segment # NEW: Checks for another common weakness
+        tests:
+          - accepted_values:
+              values: ['Retail', 'SME', 'Corporate']
+
   - name: stg_policies
     columns:
       - name: idd_pol_policy
         tests: [not_null, unique]
       - name: idd_cus_customer
-        tests: [not_null]
+        tests:
+          - not_null
+          # NEW & CRITICAL: This directly validates policies against customers.
+          # It answers the core of the question.
+          - relationships:
+              to: ref('stg_customers')
+              field: idd_cus_customer
 
   - name: stg_claims
     columns:
@@ -14,16 +34,32 @@ models:
         tests: [not_null, unique]
       - name: idd_pol_policy
         tests:
-          - relationships:
+          - relationships: # This remains essential for the full chain
               to: ref('stg_policies')
               field: idd_pol_policy
 
+  # GOLD TESTS: Check the final, business-facing tables
   - name: dim_customers
     columns:
       - name: idd_cus_customer
         tests: [not_null, unique]
+      # NEW: This validates the derived age logic in the customer dimension.
+      # It checks for a logical weakness (e.g., negative ages).
+      - name: age_years
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
 
   - name: dim_products
     columns:
       - name: idd_prd_product
         tests: [not_null, unique]
+
+  - name: fact_claims
+    columns:
+      # NEW: Final validation that the fact table's keys are valid
+      - name: idd_cus_customer
+        tests:
+          - relationships:
+              to: ref('dim_customers')
+              field: idd_cus_customer
