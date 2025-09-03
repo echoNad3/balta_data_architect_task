@@ -12,7 +12,7 @@ This README mirrors the structure of the assignment tasks in order.
 
 **2.** Organize code by folders (`dbt`, `pipelines`, `docs`).  
 ✅ Done. Final structure:
-- `dbt/` – dbt project (models, seeds, profiles, warehouse)  
+- `dbt/` – dbt project (models, seeds, warehouse, etc.)  
 - `pipelines/` – Python scripts (`validate_data.py`, `offers_uniqueness.py`, `export_for_pbi.py`)  
 - `docs/` – data quality report, images 
 - `exports/` – CSV exports for Power BI  
